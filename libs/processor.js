@@ -112,7 +112,7 @@ module.exports = {
             if (! tempPath) return next();
             md5File(data.src, function(err, hash1){
                 if (err) return next(err);
-                var cache = lazy ? data.dest : path.join(tempPath, data.file);
+                var cache = lazy ? data.src : path.join(tempPath, data.file);
                 doCompare(data, hash1, cache, next, skip);
             })
         }
