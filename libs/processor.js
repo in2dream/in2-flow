@@ -6,7 +6,6 @@ var colors = require('colors');
 var async = require('async');
 var md5File = require('md5-file');
 var fs = require('fs-extra');
-var utf8 = require('utf8');
 
 module.exports = {
     /**
@@ -41,11 +40,11 @@ module.exports = {
             async.eachSeries(Object.keys(sizes), function(key, done) {
                 var size = sizes[key];
                 var o = size.option || {};
-                var src = utf8.encode(data.src);
+                var src = data.src;
                 var dest = size.dest ? (typeof(size.dest) == 'function' ? size.dest(data.file) : size.dest) : data.dest;
 
-                if (size.suffix) src = path.join(path.dirname(src), path.basename(src, path.extname(src)) + size.suffix + path.extname(src));
-                if (size.prefix) src = path.join(path.dirname(src), size.prefix + path.basename(src, path.extname(src)) + path.extname(src));
+                if (size.suffix) dest = path.join(path.dirname(dest), path.basename(dest, path.extname(dest)) + size.suffix + path.extname(dest));
+                if (size.prefix) dest = path.join(path.dirname(dest), size.prefix + path.basename(dest, path.extname(dest)) + path.extname(dest));
 
                 o.srcPath = src;
                 o.dstPath = dest;
