@@ -1,0 +1,7 @@
+.*
+
+examples
+node_modules
+
+!.gitignore
+!.gitkeep
