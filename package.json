@@ -1,6 +1,6 @@
 {
   "name": "in2-flow",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "file process flow",
   "main": "index.js",
   "repository": "git@github.com:in2dream/in2-flow.git",

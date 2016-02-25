@@ -25,6 +25,7 @@ module.exports = {
      * @returns {Function}
      */
     resize: function(config) {
+        config = config || {};
         var sizes = config.sizes || {};
         var callback = config.callback || null;
 
@@ -58,6 +59,7 @@ module.exports = {
     },
 
     unique: function(config) {
+        config = config || {};
         var tempPath = config.tempPath || '/var/tmp';
         var callback = config.callback || null;
         var lazy = config.lazy || false;
@@ -110,20 +112,19 @@ module.exports = {
             if (! tempPath) return next();
             md5File(data.src, function(err, hash1){
                 if (err) return next(err);
-                var cache = path.join(tempPath, data.file);
+                var cache = lazy ? data.dest : path.join(tempPath, data.file);
                 doCompare(data, hash1, cache, next, skip);
             })
         }
     },
 
     destMap: function(config) {
+        config = config || {};
         var map = config.map || {};
         return function(data, next) {
             if (Object.keys(map).length == 0) return next();
             async.eachSeries(Object.keys(map), function(pattern, done){
                 var p = new RegExp(pattern);
-                console.log(data.dest);
-                console.log(p);
                 if (p.test(data.dest))
                 {
                     data.dest = map[pattern](data.dest, data.dest.match(p));
@@ -134,6 +135,7 @@ module.exports = {
         }
     },
     copy: function(config) {
+        config = config || {};
         var callback = config.callback || null;
         return function(data, next) {
             fs.ensureDir(path.dirname(data.dest), function(err){
