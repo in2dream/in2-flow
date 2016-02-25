@@ -8,6 +8,7 @@ module.exports = {
         return new Flow({
             src: dir
         })
-    }
+    },
 
-}
+    processor: require('./libs/processor')
+};
