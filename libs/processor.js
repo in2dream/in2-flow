@@ -6,6 +6,7 @@ var colors = require('colors');
 var async = require('async');
 var md5File = require('md5-file');
 var fs = require('fs-extra');
+var utf8 = require('utf8');
 
 module.exports = {
     /**
@@ -40,11 +41,11 @@ module.exports = {
             async.eachSeries(Object.keys(sizes), function(key, done) {
                 var size = sizes[key];
                 var o = size.option || {};
-                var src = data.src;
+                var src = utf8.encode(data.src);
                 var dest = size.dest ? (typeof(size.dest) == 'function' ? size.dest(data.file) : size.dest) : data.dest;
 
-                if (size.suffix) src = path.join(path.dirname(src), path.basename(src, path.extname(src)) + suffix + path.extname(src));
-                if (size.prefix) src = path.join(path.dirname(src), prefix + path.basename(src, path.extname(src)) + path.extname(src));
+                if (size.suffix) src = path.join(path.dirname(src), path.basename(src, path.extname(src)) + size.suffix + path.extname(src));
+                if (size.prefix) src = path.join(path.dirname(src), size.prefix + path.basename(src, path.extname(src)) + path.extname(src));
 
                 o.srcPath = src;
                 o.dstPath = dest;
@@ -73,8 +74,11 @@ module.exports = {
         function compare(data, hash, file, next, skip) {
             md5File(file, function(err, hash2){
                 if (err) return next(err);
-                if (callback) callback(data);
-                if (hash == hash2) return skip();
+                if (hash == hash2) {
+                    if (callback) callback(true, data);
+                    return skip();
+                }
+                if (callback) callback(false, data);
                 return next();
             })
         }
@@ -83,7 +87,7 @@ module.exports = {
             if (lazy)
             {
                 if (hashTable[file] && hashTable[file] == hash) {
-                    if (callback) callback(data);
+                    if (callback) callback(true, data);
                     return skip();
                 } else {
                     md5File(file, function (err, md5) {
@@ -91,17 +95,19 @@ module.exports = {
                         hashTable[file] = md5;
                         fs.writeFile(path.join(tempPath, '.hashTable'), JSON.stringify(hashTable), function (err) {
                             if (err) return next(err);
+                            if (callback) callback(false, data);
                             return next();
                         });
                     });
                 }
             } else {
                 fs.exists(file, function (ok) {
-                    if (!ok) {
+                    if (! ok) {
                         return fs.copy(data.src, file, function (err) {
                             if (err) return next(err);
-                            compare(data, hash, file, next, skip);
-                        })
+                            if (callback) callback(true, data);
+                            return next();
+                        });
                     }
                     return compare(data, hash, file, next, skip);
                 })
