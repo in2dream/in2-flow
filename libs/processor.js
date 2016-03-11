@@ -64,6 +64,7 @@ module.exports = {
         var callback = config.callback || null;
         var lazy = config.lazy || false;
         var hashTable = {};
+        var base = config.base || '/';
 
         if (lazy && fs.existsSync(path.join(tempPath, '.hashTable'))) {
             hashTable = JSON.parse(fs.readFileSync(path.join(tempPath, '.hashTable')));
@@ -83,15 +84,16 @@ module.exports = {
         }
 
         function doCompare(data, hash, file, next, skip) {
+            var key = path.relative(base, file);
             if (lazy)
             {
-                if (hashTable[file] && hashTable[file] == hash) {
+                if (hashTable[key] && hashTable[key] == hash) {
                     if (callback) callback(true, data);
                     return skip();
                 } else {
                     md5File(file, function (err, md5) {
                         if (err) return next(err);
-                        hashTable[file] = md5;
+                        hashTable[key] = md5;
                         fs.writeFile(path.join(tempPath, '.hashTable'), JSON.stringify(hashTable), function (err) {
                             if (err) return next(err);
                             if (callback) callback(false, data);
