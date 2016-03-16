@@ -65,6 +65,7 @@ module.exports = {
         var lazy = config.lazy || false;
         var hashTable = {};
         var base = config.base || '/';
+        var ignore = config.ignore || false;
 
         if (lazy && fs.existsSync(path.join(tempPath, '.hashTable'))) {
             hashTable = JSON.parse(fs.readFileSync(path.join(tempPath, '.hashTable')));
@@ -87,7 +88,7 @@ module.exports = {
             var key = path.relative(base, file);
             if (lazy)
             {
-                if (hashTable[key] && hashTable[key] == hash) {
+                if (! ignore && (hashTable[key] && hashTable[key] == hash)) {
                     if (callback) callback(true, data);
                     return skip();
                 } else {
