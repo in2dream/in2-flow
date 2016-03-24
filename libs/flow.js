@@ -79,15 +79,19 @@ Flow.prototype.run = function(done) {
                 srcDir: self.src
             };
 
+            function skip() {
+                return next();
+            }
+
             // apply all middleware
             async.eachSeries(self.middlewares, function(m, done) {
-                m(data, done, function(){
-                    next();
+                process.nextTick(function(){
+                    m(data, done, skip);
                 });
             }, next);
         }, done);
     });
-}
+};
 
 
 module.exports = Flow;

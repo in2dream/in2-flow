@@ -65,7 +65,7 @@ module.exports = {
         var lazy = config.lazy || false;
         var hashTable = {};
         var base = config.base || '/';
-        var ignore = config.ignore || false;
+        var ignore = config.ignore || false; // set to true if you want to forced doing something
         var pretty = config.pretty || true;
 
         if (lazy && fs.existsSync(path.join(tempPath, '.hashTable'))) {
