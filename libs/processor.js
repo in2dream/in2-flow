@@ -66,6 +66,7 @@ module.exports = {
         var hashTable = {};
         var base = config.base || '/';
         var ignore = config.ignore || false;
+        var pretty = config.pretty || true;
 
         if (lazy && fs.existsSync(path.join(tempPath, '.hashTable'))) {
             hashTable = JSON.parse(fs.readFileSync(path.join(tempPath, '.hashTable')));
@@ -95,7 +96,8 @@ module.exports = {
                     md5File(file, function (err, md5) {
                         if (err) return next(err);
                         hashTable[key] = md5;
-                        fs.writeFile(path.join(tempPath, '.hashTable'), JSON.stringify(hashTable), function (err) {
+                        var c = pretty ? JSON.stringify(hashTable, null, 4) : JSON.stringify(hashTable);
+                        fs.writeFile(path.join(tempPath, '.hashTable'), c, function (err) {
                             if (err) return next(err);
                             if (callback) callback(false, data);
                             return next();
