@@ -48,7 +48,24 @@ module.exports = {
 
                 o.srcPath = src;
                 o.dstPath = dest;
-                im.resize(o, function (err) {
+                fs.ensureDirSync(path.dirname(dest));
+
+                async.waterfall([
+                    function(done) {
+                        im.identify(src, done)
+                    },
+                    function(info, done) {
+                        var opt = Object.assign({}, o);
+                        if (o.percentage) {
+                            opt.width = info.width * o.percentage/100;
+                            delete opt.percentage;
+                        }
+                        done(null, opt);
+                    },
+                    function (o, done) {
+                        im.resize(o, done);
+                    }
+                ], function(err) {
                     if (err) return next(err);
                     if (callback) callback(key, o);
                     data.resizes[key] = dest;
@@ -60,6 +77,7 @@ module.exports = {
 
     unique: function(config) {
         config = config || {};
+        const baseDir = config.base || '/';
         var tempPath = config.tempPath || '/var/tmp';
         var callback = config.callback || null;
         var lazy = config.lazy || false;
@@ -71,7 +89,6 @@ module.exports = {
         if (lazy && fs.existsSync(path.join(tempPath, '.hashTable'))) {
             hashTable = JSON.parse(fs.readFileSync(path.join(tempPath, '.hashTable')));
         }
-
 
         function compare(data, hash, file, next, skip) {
             md5File(file, function(err, hash2){
@@ -86,7 +103,7 @@ module.exports = {
         }
 
         function doCompare(data, hash, file, next, skip) {
-            var key = path.relative(base, file);
+            const key = path.relative(base, file);
             if (lazy)
             {
                 if (! ignore && (hashTable[key] && hashTable[key] == hash)) {
@@ -157,5 +174,7 @@ module.exports = {
                 });
             });
         }
-    }
+    },
+
+    pngquant: require('./vendor/pngquant')
 };
