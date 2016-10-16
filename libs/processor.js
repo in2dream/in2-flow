@@ -6,6 +6,8 @@ var colors = require('colors');
 var async = require('async');
 var md5File = require('md5-file');
 var fs = require('fs-extra');
+const execFile = require('child_process').execFile;
+const gifsicle = require('gifsicle');
 
 module.exports = {
     /**
@@ -31,7 +33,7 @@ module.exports = {
 
         return function(data, next) {
             // only process image files
-            if (['.png', '.jpg', '.jpeg'].indexOf(path.extname(data.file)) < 0) return next();
+            if (['.png', '.jpg', '.jpeg', '.gif'].indexOf(path.extname(data.file)) < 0) return next();
 
             // init resizes param
             data.resizes = data.resizes || {};
@@ -50,20 +52,31 @@ module.exports = {
                 o.dstPath = dest;
                 fs.ensureDirSync(path.dirname(dest));
 
+                const isGif = path.extname(o.srcPath) == '.gif';
                 async.waterfall([
                     function(done) {
+                        //console.log('identify');
+                        if (isGif) return done(null, {});
                         im.identify(src, done)
                     },
                     function(info, done) {
+                        //console.log('info');
                         var opt = Object.assign({}, o);
-                        if (o.percentage) {
+                        if (o.percentage && !isGif) {
                             opt.width = info.width * o.percentage/100;
+                            opt.height = info.height * o.percentage/100;
                             delete opt.percentage;
                         }
                         done(null, opt);
                     },
                     function (o, done) {
-                        im.resize(o, done);
+                        //console.log(isGif);
+                        if (isGif) {
+                            //console.log('gif');
+                            execFile(gifsicle, ['-o', o.dstPath, o.srcPath, '--scale', o.percentage/100], (err) => done(err));
+                        } else {
+                            im.resize(o, done);
+                        }
                     }
                 ], function(err) {
                     if (err) return next(err);
